@@ -1,0 +1,2 @@
+[workspace]
+members = ["borsh-max-size", "borsh-max-size-derive"]
