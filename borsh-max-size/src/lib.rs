@@ -113,6 +113,8 @@ where
 }
 
 #[cfg(feature = "arrayvec")]
+use arrayvec::ArrayVec;
+#[cfg(feature = "arrayvec")]
 impl<T, const N: usize> MaxSize for ArrayVec<T, N>
 where
     T: MaxSize,
