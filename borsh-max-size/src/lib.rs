@@ -113,7 +113,7 @@ where
 }
 
 #[cfg(feature = "arrayvec")]
-use arrayvec::ArrayVec;
+use arrayvec::{ArrayString, ArrayVec};
 #[cfg(feature = "arrayvec")]
 impl<T, const N: usize> MaxSize for ArrayVec<T, N>
 where
@@ -121,5 +121,21 @@ where
 {
     fn max_size() -> usize {
         4 + N * T::max_size()
+    }
+}
+
+#[cfg(feature = "arrayvec")]
+impl<const N: usize> MaxSize for ArrayString<N> {
+    fn max_size() -> usize {
+        N
+    }
+}
+
+#[cfg(feature = "solana-program")]
+use solana_program::pubkey::Pubkey;
+#[cfg(feature = "solana-program")]
+impl MaxSize for Pubkey {
+    fn max_size() -> usize {
+        32
     }
 }

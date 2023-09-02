@@ -12,4 +12,9 @@ default_features = false
 optional = true
 version = "0.7.4"
 
+[dependencies.solana-program]
+default_features = false
+optional = true
+version = "1"
+
 [lib]
