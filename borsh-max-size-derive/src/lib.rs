@@ -9,17 +9,15 @@ extern crate proc_macro;
 
 #[proc_macro_derive(MaxSize)]
 pub fn derive_max_size(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    // Parse the input tokens into a syntax tree.
     let mut input = parse_macro_input!(input as DeriveInput);
 
-    // Used in the quasi-quotation below as `#name`.
     let name = &input.ident;
 
     // Add a bound `T: MaxSize` to every type parameter T.
     add_trait_bounds(&mut input.generics);
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    // Generate an expression to sum up the max size of each field.
+    // Generate an expression to aggregate the max size of each field.
     let sum = overall_max_size(&input.data);
 
     let expanded = quote! {
@@ -79,16 +77,9 @@ fn size_of_fields(fields: &Fields) -> TokenStream {
         Fields::Named(ref fields) => {
             // Expands to an expression like
             //
-            //     0 + self.x.heap_size() + self.y.heap_size() + self.z.heap_size()
+            //     0 + self.x.max_size() + self.y.max_size() + self.z.max_size()
             //
             // but using fully qualified function call syntax.
-            //
-            // We take some care to use the span of each `syn::Field` as
-            // the span of the corresponding `heap_size_of_children`
-            // call. This way if one of the field types does not
-            // implement `HeapSize` then the compiler's error message
-            // underlines which field it is. An example is shown in the
-            // readme of the parent directory.
             let recurse = fields.named.iter().map(|f| {
                 let type_ = &f.ty;
                 quote_spanned! {f.span()=>
@@ -102,7 +93,7 @@ fn size_of_fields(fields: &Fields) -> TokenStream {
         Fields::Unnamed(ref fields) => {
             // Expands to an expression like
             //
-            //     0 + self.0.heap_size() + self.1.heap_size() + self.2.heap_size()
+            //     0 + self.0.max_size() + self.1.max_size() + self.2.max_size()
             let recurse = fields.unnamed.iter().map(|f| {
                 let type_ = &f.ty;
                 quote_spanned! {f.span()=>
@@ -114,7 +105,7 @@ fn size_of_fields(fields: &Fields) -> TokenStream {
             }
         }
         Fields::Unit => {
-            // Unit structs cannot own more than 0 bytes of heap memory.
+            // Unit structs don't take up space in the serialization.
             quote!(0)
         }
     }
